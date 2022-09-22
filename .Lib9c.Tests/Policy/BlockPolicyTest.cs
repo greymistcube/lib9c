@@ -494,45 +494,45 @@ namespace Lib9c.Tests
             }
 
             Assert.Equal(1, blockChain.Count);
-            Block<PolymorphicAction<ActionBase>> block1 = new BlockContent<PolymorphicAction<ActionBase>>
-            {
-                Index = 1,
-                Difficulty = policy.GetNextBlockDifficulty(blockChain),
-                TotalDifficulty =
-                    blockChain.Tip.TotalDifficulty + policy.GetNextBlockDifficulty(blockChain),
-                PublicKey = adminPublicKey,
-                PreviousHash = blockChain.Tip.Hash,
-                Timestamp = DateTimeOffset.MinValue,
-                Transactions = GenerateTransactions(5),
-            }.Mine().Evaluate(adminPrivateKey, blockChain);
+            var transactions = GenerateTransactions(5).OrderBy(tx => tx.Id).ToList();
+            Block<PolymorphicAction<ActionBase>> block1 = new BlockContent<PolymorphicAction<ActionBase>>(
+                new BlockMetadata(
+                    index: 1,
+                    timestamp: DateTimeOffset.MinValue,
+                    difficulty: policy.GetNextBlockDifficulty(blockChain),
+                    totalDifficulty: blockChain.Tip.TotalDifficulty + policy.GetNextBlockDifficulty(blockChain),
+                    publicKey: adminPublicKey,
+                    previousHash: blockChain.Tip.Hash,
+                    txHash: BlockContent<PolymorphicAction<ActionBase>>.DeriveTxHash(transactions)),
+                transactions: transactions).Mine().Evaluate(adminPrivateKey, blockChain);
             blockChain.Append(block1);
             Assert.Equal(2, blockChain.Count);
             Assert.True(blockChain.ContainsBlock(block1.Hash));
-            Block<PolymorphicAction<ActionBase>> block2 = new BlockContent<PolymorphicAction<ActionBase>>
-            {
-                Index = 2,
-                Difficulty = policy.GetNextBlockDifficulty(blockChain),
-                TotalDifficulty =
-                    blockChain.Tip.TotalDifficulty + policy.GetNextBlockDifficulty(blockChain),
-                PublicKey = adminPublicKey,
-                PreviousHash = blockChain.Tip.Hash,
-                Timestamp = DateTimeOffset.MinValue,
-                Transactions = GenerateTransactions(10),
-            }.Mine().Evaluate(adminPrivateKey, blockChain);
+            transactions = GenerateTransactions(10).OrderBy(tx => tx.Id).ToList();
+            Block<PolymorphicAction<ActionBase>> block2 = new BlockContent<PolymorphicAction<ActionBase>>(
+                new BlockMetadata(
+                    index: 2,
+                    timestamp: DateTimeOffset.MinValue,
+                    difficulty: policy.GetNextBlockDifficulty(blockChain),
+                    totalDifficulty: blockChain.Tip.TotalDifficulty + policy.GetNextBlockDifficulty(blockChain),
+                    publicKey: adminPublicKey,
+                    previousHash: blockChain.Tip.Hash,
+                    txHash: BlockContent<PolymorphicAction<ActionBase>>.DeriveTxHash(transactions)),
+                transactions: transactions).Mine().Evaluate(adminPrivateKey, blockChain);
             blockChain.Append(block2);
             Assert.Equal(3, blockChain.Count);
             Assert.True(blockChain.ContainsBlock(block2.Hash));
-            Block<PolymorphicAction<ActionBase>> block3 = new BlockContent<PolymorphicAction<ActionBase>>
-            {
-                Index = 3,
-                Difficulty = policy.GetNextBlockDifficulty(blockChain),
-                TotalDifficulty =
-                    blockChain.Tip.TotalDifficulty + policy.GetNextBlockDifficulty(blockChain),
-                PublicKey = adminPublicKey,
-                PreviousHash = blockChain.Tip.Hash,
-                Timestamp = DateTimeOffset.MinValue,
-                Transactions = GenerateTransactions(11),
-            }.Mine().Evaluate(adminPrivateKey, blockChain);
+            transactions = GenerateTransactions(11).OrderBy(tx => tx.Id).ToList();
+            Block<PolymorphicAction<ActionBase>> block3 = new BlockContent<PolymorphicAction<ActionBase>>(
+                new BlockMetadata(
+                    index: 3,
+                    timestamp: DateTimeOffset.MinValue,
+                    publicKey: adminPublicKey,
+                    difficulty: policy.GetNextBlockDifficulty(blockChain),
+                    totalDifficulty: blockChain.Tip.TotalDifficulty + policy.GetNextBlockDifficulty(blockChain),
+                    previousHash: blockChain.Tip.Hash,
+                    txHash: BlockContent<PolymorphicAction<ActionBase>>.DeriveTxHash(transactions)),
+                transactions: transactions).Mine().Evaluate(adminPrivateKey, blockChain);
             Assert.Throws<InvalidBlockTxCountException>(() => blockChain.Append(block3));
             Assert.Equal(3, blockChain.Count);
             Assert.False(blockChain.ContainsBlock(block3.Hash));
@@ -589,32 +589,34 @@ namespace Lib9c.Tests
             }
 
             Assert.Equal(1, blockChain.Count);
-            Block<PolymorphicAction<ActionBase>> block1 = new BlockContent<PolymorphicAction<ActionBase>>
-            {
-                Index = 1,
-                Difficulty = policy.GetNextBlockDifficulty(blockChain),
-                TotalDifficulty = blockChain.Tip.Difficulty + policy.GetNextBlockDifficulty(blockChain),
-                PublicKey = adminPublicKey,
-                PreviousHash = blockChain.Tip.Hash,
-                Timestamp = DateTimeOffset.MinValue,
-                Transactions = GenerateTransactions(10),
-            }.Mine().Evaluate(adminPrivateKey, blockChain);
+            var transactions = GenerateTransactions(10).OrderBy(tx => tx.Id).ToList();
+            Block<PolymorphicAction<ActionBase>> block1 = new BlockContent<PolymorphicAction<ActionBase>>(
+                new BlockMetadata(
+                    index: 1,
+                    timestamp: DateTimeOffset.MinValue,
+                    publicKey: adminPublicKey,
+                    difficulty: policy.GetNextBlockDifficulty(blockChain),
+                    totalDifficulty: blockChain.Tip.Difficulty + policy.GetNextBlockDifficulty(blockChain),
+                    previousHash: blockChain.Tip.Hash,
+                    txHash: BlockContent<PolymorphicAction<ActionBase>>.DeriveTxHash(transactions)),
+                transactions: transactions).Mine().Evaluate(adminPrivateKey, blockChain);
 
             // Should be fine since policy hasn't kicked in yet.
             blockChain.Append(block1);
             Assert.Equal(2, blockChain.Count);
             Assert.True(blockChain.ContainsBlock(block1.Hash));
 
-            Block<PolymorphicAction<ActionBase>> block2 = new BlockContent<PolymorphicAction<ActionBase>>
-            {
-                Index = 2,
-                Difficulty = policy.GetNextBlockDifficulty(blockChain),
-                TotalDifficulty = blockChain.Tip.Difficulty + policy.GetNextBlockDifficulty(blockChain),
-                PublicKey = adminPublicKey,
-                PreviousHash = blockChain.Tip.Hash,
-                Timestamp = DateTimeOffset.MinValue,
-                Transactions = GenerateTransactions(10),
-            }.Mine().Evaluate(adminPrivateKey, blockChain);
+            transactions = GenerateTransactions(10).OrderBy(tx => tx.Id).ToList();
+            Block<PolymorphicAction<ActionBase>> block2 = new BlockContent<PolymorphicAction<ActionBase>>(
+                new BlockMetadata(
+                    index: 2,
+                    timestamp: DateTimeOffset.MinValue,
+                    publicKey: adminPublicKey,
+                    difficulty: policy.GetNextBlockDifficulty(blockChain),
+                    totalDifficulty: blockChain.Tip.Difficulty + policy.GetNextBlockDifficulty(blockChain),
+                    previousHash: blockChain.Tip.Hash,
+                    txHash: BlockContent<PolymorphicAction<ActionBase>>.DeriveTxHash(transactions)),
+                transactions: transactions).Mine().Evaluate(adminPrivateKey, blockChain);
 
             // Subpolicy kicks in.
             Assert.Throws<InvalidBlockTxCountPerSignerException>(() => blockChain.Append(block2));
@@ -624,16 +626,17 @@ namespace Lib9c.Tests
             nonce -= 10;
 
             // Limit should also pass.
-            Block<PolymorphicAction<ActionBase>> block3 = new BlockContent<PolymorphicAction<ActionBase>>
-            {
-                Index = 2,
-                Difficulty = policy.GetNextBlockDifficulty(blockChain),
-                TotalDifficulty = blockChain.Tip.Difficulty + policy.GetNextBlockDifficulty(blockChain),
-                PublicKey = adminPublicKey,
-                PreviousHash = blockChain.Tip.Hash,
-                Timestamp = DateTimeOffset.MinValue,
-                Transactions = GenerateTransactions(5),
-            }.Mine().Evaluate(adminPrivateKey, blockChain);
+            transactions = GenerateTransactions(5).OrderBy(tx => tx.Id).ToList();
+            Block<PolymorphicAction<ActionBase>> block3 = new BlockContent<PolymorphicAction<ActionBase>>(
+                new BlockMetadata(
+                    index: 2,
+                    timestamp: DateTimeOffset.MinValue,
+                    publicKey: adminPublicKey,
+                    difficulty: policy.GetNextBlockDifficulty(blockChain),
+                    totalDifficulty: blockChain.Tip.Difficulty + policy.GetNextBlockDifficulty(blockChain),
+                    previousHash: blockChain.Tip.Hash,
+                    txHash: BlockContent<PolymorphicAction<ActionBase>>.DeriveTxHash(transactions)),
+                transactions: transactions).Mine().Evaluate(adminPrivateKey, blockChain);
 
             blockChain.Append(block3);
             Assert.Equal(3, blockChain.Count);
