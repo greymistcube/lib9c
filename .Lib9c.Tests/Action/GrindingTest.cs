@@ -28,7 +28,7 @@ namespace Lib9c.Tests.Action
         private readonly AvatarState _avatarState;
         private readonly Currency _crystalCurrency;
         private readonly Currency _ncgCurrency;
-        private readonly IAccountStateDelta _initialState;
+        private readonly MockState _initialState;
 
         public GrindingTest()
         {
@@ -61,7 +61,7 @@ namespace Lib9c.Tests.Action
 #pragma warning restore CS0618
             var goldCurrencyState = new GoldCurrencyState(_ncgCurrency);
 
-            _initialState = new MockStateDelta()
+            _initialState = MockState.Empty
                 .SetState(
                     Addresses.GetSheetAddress<CrystalMonsterCollectionMultiplierSheet>(),
                     _tableSheets.CrystalMonsterCollectionMultiplierSheet.Serialize())
@@ -122,7 +122,6 @@ namespace Lib9c.Tests.Action
             Type exc
         )
         {
-            var context = new ActionContext();
             var state = _initialState;
             if (agentExist)
             {
@@ -174,30 +173,19 @@ namespace Lib9c.Tests.Action
 
                 if (stake)
                 {
-                    state = state.SetState(stakeStateAddress, stakeState.SerializeV2());
-
-                    if (requiredGold > 0)
-                    {
-                        state = state.MintAsset(
-                            context,
-                            stakeStateAddress,
-                            requiredGold * _ncgCurrency
-                        );
-                    }
+                    state = state
+                        .SetState(stakeStateAddress, stakeState.SerializeV2())
+                        .AddBalance(stakeStateAddress, requiredGold * _ncgCurrency);
                 }
 
                 if (monsterCollect)
                 {
                     var mcAddress = MonsterCollectionState.DeriveAddress(_agentAddress, 0);
-                    state = state.SetState(
-                        mcAddress,
-                        new MonsterCollectionState(mcAddress, monsterCollectLevel, 1).Serialize()
-                    );
-
-                    if (requiredGold > 0)
-                    {
-                        state = state.MintAsset(context, mcAddress, requiredGold * _ncgCurrency);
-                    }
+                    state = state
+                        .SetState(
+                            mcAddress,
+                            new MonsterCollectionState(mcAddress, monsterCollectLevel, 1).Serialize())
+                        .AddBalance(mcAddress, requiredGold * _ncgCurrency);
                 }
             }
 
@@ -216,11 +204,12 @@ namespace Lib9c.Tests.Action
                 ChargeAp = chargeAp,
             };
 
+            var stateDelta = new MockStateDelta(state);
             if (exc is null)
             {
                 var nextState = action.Execute(new ActionContext
                 {
-                    PreviousState = state,
+                    PreviousState = stateDelta,
                     Signer = _agentAddress,
                     BlockIndex = 1,
                     Random = _random,
@@ -246,7 +235,7 @@ namespace Lib9c.Tests.Action
             {
                 Assert.Throws(exc, () => action.Execute(new ActionContext
                 {
-                    PreviousState = state,
+                    PreviousState = stateDelta,
                     Signer = _agentAddress,
                     BlockIndex = 1,
                     Random = _random,
