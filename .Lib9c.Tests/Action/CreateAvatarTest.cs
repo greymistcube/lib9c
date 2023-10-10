@@ -62,7 +62,6 @@ namespace Lib9c.Tests.Action
                 PreviousState = state,
                 Signer = _agentAddress,
                 BlockIndex = blockIndex,
-                Random = new TestRandom(),
             });
 
             var avatarAddress = _agentAddress.Derive(
