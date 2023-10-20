@@ -25,12 +25,12 @@ namespace Nekoyume.Action
 
         IEnumerable<IValue> ICreatePendingActivationsV1.PendingActivations =>
             PendingActivations.Select(t =>
-                new List(new Binary[] { t.Address, t.Nonce, t.PublicKey }.Cast<IValue>()));
+                new List(new Binary[] { new Binary(t.Address), new Binary(t.Nonce), new Binary(t.PublicKey) }.Cast<IValue>()));
 
         public override IValue PlainValue => Dictionary.Empty
             .Add("type_id", "create_pending_activations")
             .Add("values", PendingActivations
-                .Select(t => new List(new Binary[] { t.Address, t.Nonce, t.PublicKey }.Cast<IValue>()))
+                .Select(t => new List(new Binary[] { new Binary(t.Address), new Binary(t.Nonce), new Binary(t.PublicKey) }.Cast<IValue>()))
                 .Serialize());
 
         public CreatePendingActivations()
