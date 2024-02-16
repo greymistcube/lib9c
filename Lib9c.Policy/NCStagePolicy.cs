@@ -20,7 +20,7 @@ namespace Nekoyume.Blockchain
 
         public NCStagePolicy(TimeSpan txLifeTime, int quotaPerSigner, IAccessControlService? accessControlService = null)
         {
-            if (quotaPerSigner < 1)
+            if (quotaPerSigner < 0)
             {
                 throw new ArgumentOutOfRangeException(
                     $"{nameof(quotaPerSigner)} must be positive: ${quotaPerSigner}");
@@ -102,6 +102,13 @@ namespace Nekoyume.Blockchain
                     _quotaPerSignerList[transaction.Signer] = acsTxQuota;
 
                     if (acsTxQuota == 0)
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (_quotaPerSigner < 1)
                     {
                         return false;
                     }
